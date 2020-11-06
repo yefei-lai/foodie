@@ -20,7 +20,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver # mysql驱动
     url: jdbc:mysql://localhost:3306/foodie-shop-dev?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
     username: root
-    password: laiyefei
+    password: root123456
   hikari:
     connection-timeout: 30000     # 等待连接池分配连接的最大时长（毫秒），超过这个时长还没可用的连接则发生SQLException
     minimum-idle: 5               # 最小连接数
@@ -41,3 +41,9 @@ mapper:
   mappers: com.imooc.my.mapper.MyMapper
   not-empty: false  # 在进行数据库操作的时候，判断表达式 username != null, 是否追加 user != ''
   identity: MYSQL
+mybatis:
+  type-aliases-package: com.imooc.pojo        # 所有POJO类所在路径
+  mapper-locations: classpath:mapper/*.xml    # mapper映射文件
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
