@@ -20,7 +20,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver # mysql驱动
     url: jdbc:mysql://localhost:3306/foodie-shop-dev?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true
     username: root
-    password: root123456
+    password: laiyefei
   hikari:
     connection-timeout: 30000     # 等待连接池分配连接的最大时长（毫秒），超过这个时长还没可用的连接则发生SQLException
     minimum-idle: 5               # 最小连接数
@@ -46,4 +46,7 @@ mybatis:
   mapper-locations: classpath:mapper/*.xml    # mapper映射文件
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
+#分页插件配置
+pagehelper:
+  helper-dialect: mysql
+  support-methods-arguments: true
