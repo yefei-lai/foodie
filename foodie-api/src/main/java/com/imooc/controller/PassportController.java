@@ -76,6 +76,9 @@ public class PassportController {
         CookieUtils.setCookie(httpServletRequest, httpServletResponse, "user",
                 JsonUtils.objectToJson(users), true); //isEncode 是否加密
 
+        // TODO 生成用户token，存入redis会话
+        // TODO 同步购物车数据
+
         return IMOOCJSONResult.ok();
     }
 
@@ -103,6 +106,9 @@ public class PassportController {
 
         CookieUtils.setCookie(httpServletRequest, httpServletResponse, "user",
                 JsonUtils.objectToJson(users), true); //isEncode 是否加密
+
+        // TODO 生成用户token，存入redis会话
+        // TODO 同步购物车数据
 
         return IMOOCJSONResult.ok(users);
     }
