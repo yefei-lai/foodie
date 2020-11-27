@@ -103,7 +103,7 @@ public class ItemsController extends BaseController{
             page = 1;
         }
         if (null == pageSize){
-            pageSize = PAGE_SIZE;
+            pageSize = COMMENT_PAGE_SIZE;
         }
         PagedGridResult gridResult = itemService.searchItems(page, pageSize, keywords, sort);
         return IMOOCJSONResult.ok(gridResult);

@@ -6,6 +6,7 @@ import com.imooc.pojo.bo.center.CenterUserBO;
 import com.imooc.resource.FileUpload;
 import com.imooc.service.center.CenterUserService;
 import common.imooc.utils.CookieUtils;
+import common.imooc.utils.DateUtil;
 import common.imooc.utils.IMOOCJSONResult;
 import common.imooc.utils.JsonUtils;
 import io.swagger.annotations.Api;
@@ -71,12 +72,20 @@ public class CenterUserController extends BaseController {
                     // 获取文件后缀名
                     String suffix = fileNameArr[fileNameArr.length - 1];
 
+                    if(!suffix.equalsIgnoreCase("png") &&
+                        !suffix.equalsIgnoreCase("jpg") &&
+                        !suffix.equalsIgnoreCase("jpeg")){
+                        return IMOOCJSONResult.errorMsg("图片格式不正确");
+                    }
+
                     // face-{userId}.png
                     // 文件名称重组 覆盖式上传，增量式：额外拼接当前时间
                     String newFileName = "face-" + userId + "." + suffix;
 
                     // 上传的头像最终保存的位置
                     String finalFacePath = fileSpace + uploadPathPrefix +  File.separator + newFileName;
+                    // 用于提供给web服务的地址
+                    uploadPathPrefix += ("/" + newFileName);
 
                     File outFile = new File(finalFacePath);
                     if (null != outFile.getParentFile()){
@@ -105,6 +114,22 @@ public class CenterUserController extends BaseController {
         }else {
             return IMOOCJSONResult.errorMsg("文件不能为空");
         }
+        // 获取服务图片地址
+        String imageServerUrl = fileUpload.getImageServerUrl();
+
+        // 由于浏览器可能存在缓存的情况，所以在在这里，我们需要加上时间戳来保证更新后的图片可以及时刷新
+        String finalUserFaceUrl = imageServerUrl + uploadPathPrefix
+                + "?t=" + DateUtil.getCurrentDateString(DateUtil.DATE_PATTERN);
+
+        // 更新用户头像到数据库
+        Users userResult = centerUserService.updateUserFace(userId, finalUserFaceUrl);
+
+        // 更新cookie里的用户信息
+        userResult = setNullProperty(userResult);
+        CookieUtils.setCookie(httpServletRequest, httpServletResponse, "user",
+                JsonUtils.objectToJson(userResult), true);
+
+        // TODO 后续要改，增加令牌token, 会整合redis, 分布式会话
 
         return IMOOCJSONResult.ok();
     }
