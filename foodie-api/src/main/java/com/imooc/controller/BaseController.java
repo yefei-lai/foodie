@@ -1,6 +1,7 @@
 package com.imooc.controller;
 
 import com.imooc.pojo.Orders;
+import com.imooc.service.center.MyOrdersService;
 import common.imooc.utils.IMOOCJSONResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,18 +36,18 @@ public class BaseController {
 //    public static final String IMAGE_USER_FACE_LOCATION = "/workspaces/images/foodie/faces";
 
 
-//    @Autowired
-//    public MyOrdersService myOrdersService;
-//
-//    /**
-//     * 用于验证用户和订单是否有关联关系，避免非法用户调用
-//     * @return
-//     */
-//    public IMOOCJSONResult checkUserOrder(String userId, String orderId) {
-//        Orders order = myOrdersService.queryMyOrder(userId, orderId);
-//        if (order == null) {
-//            return IMOOCJSONResult.errorMsg("订单不存在！");
-//        }
-//        return IMOOCJSONResult.ok(order);
-//    }
+    @Autowired
+    public MyOrdersService myOrdersService;
+
+    /**
+     * 用于验证用户和订单是否有关联关系，避免非法用户调用
+     * @return
+     */
+    public IMOOCJSONResult checkUserOrder(String userId, String orderId) {
+        Orders order = myOrdersService.queryMyOrders(userId, orderId);
+        if (order == null) {
+            return IMOOCJSONResult.errorMsg("订单不存在！");
+        }
+        return IMOOCJSONResult.ok(order);
+    }
 }

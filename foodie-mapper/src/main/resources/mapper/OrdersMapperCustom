@@ -8,8 +8,12 @@
         <result column="realPayAmount" property="realPayAmount" />
         <result column="postAmount" property="postAmount" />
         <result column="orderStatus" property="orderStatus" />
+        <result column="isComment" property="isComment" />
 
-        <collection property="subOrderItemList" ofType="com.imooc.pojo.vo.MySubOrderItemVO">
+        <collection property="subOrderItemList"
+                    select="getSubItems"
+                    column="orderId"
+                    ofType="com.imooc.pojo.vo.MySubOrderItemVO">
             <id column="itemId" property="itemId"  />
             <result column="itemName" property="itemName" />
             <result column="itemImg" property="itemImg" />
@@ -19,7 +23,7 @@
         </collection>
     </resultMap>
 
-    <select id="queryMyOrders" resultMap="MyOrdersVO" parameterType="Map">
+    <select id="queryMyOrdersDoNotUse" resultMap="MyOrdersVO" parameterType="Map">
         SELECT
             od.id AS orderId,
             od.created_time AS createdTime,
@@ -52,4 +56,85 @@
             od.updated_time ASC
     </select>
 
+    <select id="getSubItems" parameterType="String" resultType="com.imooc.pojo.vo.MySubOrderItemVO">
+        select
+            oi.item_id AS itemId,
+            oi.item_name AS itemName,
+            oi.item_img AS itemImg,
+            oi.item_spec_name AS itemSpecName,
+            oi.buy_counts AS buyCounts,
+            oi.price AS price
+        from
+          order_items oi
+        where
+          oi.order_id = #{orderId}
+    </select>
+
+    <select id="queryMyOrders" resultMap="MyOrdersVO" parameterType="Map">
+        SELECT
+        od.id AS orderId,
+        od.created_time AS createdTime,
+        od.pay_method AS payMethod,
+        od.real_pay_amount AS realPayAmount,
+        od.post_amount AS postAmount,
+        os.order_status AS orderStatus,
+        od.is_comment as isComment
+        FROM
+        orders od
+        LEFT JOIN
+        order_status os
+        ON od.id = os.order_id
+        WHERE
+        od.user_id = #{paramsMap.userId}
+        AND
+        od.is_delete = 0
+        <if test="paramsMap.orderStatus != null">
+            and os.order_status = #{paramsMap.orderStatus}
+        </if>
+        ORDER BY
+        od.updated_time ASC
+    </select>
+
+    <select id="getMyOrderStatusCounts" parameterType="Map" resultType="int">
+        SELECT
+            count(1)
+        FROM
+            orders o
+        LEFT JOIN
+            order_status os
+        ON o.id = os.order_id
+        WHERE
+            o.user_id = #{paramsMap.userId}
+        AND
+            os.order_status = #{paramsMap.orderStatus}
+        <if test="paramsMap.isComment != null">
+            and  o.is_comment = #{paramsMap.isComment}
+        </if>
+    </select>
+
+    <select id="getMyOrderTrend" parameterType="Map" resultType="com.imooc.pojo.OrderStatus">
+        SELECT
+            os.order_id AS orderId,
+            os.order_status AS orderStatus,
+            os.close_time AS createdTime,
+            os.pay_time AS payTime,
+            os.deliver_time AS deliverTime,
+            os.success_time AS successTime,
+            os.close_time AS closeTime,
+            os.comment_time AS commentTime
+        FROM
+            orders o
+        LEFT JOIN
+            order_status os
+        ON o.id = os.order_id
+        WHERE
+            o.is_delete = 0
+        AND
+            o.user_id = #{paramsMap.userId}
+        AND
+            os.order_status IN (20, 30, 40)
+        ORDER BY
+            os.order_id
+        DESC
+    </select>
 </mapper>
