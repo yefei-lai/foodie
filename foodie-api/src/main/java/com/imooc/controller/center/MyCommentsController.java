@@ -5,7 +5,6 @@ import com.imooc.pojo.OrderItems;
 import com.imooc.pojo.Orders;
 import com.imooc.pojo.bo.center.OrderItemsCommentBO;
 import com.imooc.service.center.MyCommentsService;
-import com.imooc.service.center.MyOrdersService;
 import common.imooc.enums.YesOrNo;
 import common.imooc.utils.IMOOCJSONResult;
 import common.imooc.utils.PagedGridResult;
