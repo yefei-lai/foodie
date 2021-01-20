@@ -31,10 +31,21 @@ spring:
     max-lifetime: 1800000         # 连接的生命时长（毫秒），超时而且没被使用则被释放（retired），默认:30分钟
     connection-test-query: SELECT 1
   redis:
-    database: 1
-    host: localhost
-    port: 6379
+    # Redis 单机单实例
+#    database: 1
+#    host: localhost
+#    port: 6379
+#    password: 123456
+    # Redis 哨兵模式
+#    database: 1
+#    password: 123456
+#    sentinel:
+#      master: mymaster
+#      nodes: 192.168.1.191:26379,192.168.1.192:26379,192.168.1.193:26379
+    # Redis 集群模式
     password: 123456
+    cluster:
+      nodes: 192.168.1.201:6379,192.168.1.202:6379,192.168.1.203:6379,192.168.1.204:6379,192.168.1.205:6379,192.168.1.206:6379
   servlet:
     multipart:
       max-file-size: 512000      # 文件上传大小限制为500kb
