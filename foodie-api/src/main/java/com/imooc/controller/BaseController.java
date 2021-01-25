@@ -1,10 +1,14 @@
 package com.imooc.controller;
 
 import com.imooc.pojo.Orders;
+import com.imooc.pojo.Users;
+import com.imooc.pojo.vo.UsersVO;
 import com.imooc.service.center.MyOrdersService;
 import common.imooc.utils.IMOOCJSONResult;
+import common.imooc.utils.RedisOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,14 +16,20 @@ import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.annotations.ApiIgnore;
 
 import java.io.File;
+import java.util.UUID;
 
 @Controller
 public class BaseController {
+
+    @Autowired
+    private RedisOperator redisOperator;
 
     public static final String FOODIE_SHOPCART = "shopcart";
 
     public static final Integer COMMENT_PAGE_SIZE = 10;
     public static final Integer PAGE_SIZE = 20;
+
+    public static final String REDIS_USER_TOKEN = "redis_user_token";
 
     //支付中心调用地址
     String paymentUrl = "http://payment.t.mukewang.com/foodie-payment/payment/createMerchantOrder";
@@ -49,5 +59,16 @@ public class BaseController {
             return IMOOCJSONResult.errorMsg("订单不存在！");
         }
         return IMOOCJSONResult.ok(order);
+    }
+
+    public UsersVO conventUsersVo(Users users){
+        // 实现用户的redis会话
+        String uniqueToken = UUID.randomUUID().toString().trim();
+        redisOperator.set(REDIS_USER_TOKEN + ":" + users.getId(), uniqueToken);
+
+        UsersVO usersVO = new UsersVO();
+        BeanUtils.copyProperties(users, usersVO);
+        usersVO.setUserUniqueToken(uniqueToken);
+        return usersVO;
     }
 }
