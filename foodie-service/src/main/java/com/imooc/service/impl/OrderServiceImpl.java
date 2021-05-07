@@ -95,6 +95,12 @@ public class OrderServiceImpl implements OrderService {
         Integer totalAmount = 0; //商品原价累计
         Integer realPayAmount = 0;  //优惠后的实际支付价格累计
         List<ShopcartBO> toBeRemovedShopcartList = new ArrayList<>();
+
+        // 第15周：在用MyCat进行分库分表时为了保证在插入order_items时能根据orders表找到对应分片，应先生成orders表
+        orders.setTotalAmount(0);
+        orders.setRealPayAmount(0);
+        ordersMapper.insert(orders);
+
         for (String itemSpecId : itemSpecIdArr){
 
             ShopcartBO cartItem = getBuyCountsFromShopcart(shopcartList, itemSpecId);
@@ -132,7 +138,9 @@ public class OrderServiceImpl implements OrderService {
 
         orders.setTotalAmount(totalAmount);
         orders.setRealPayAmount(realPayAmount);
-        ordersMapper.insert(orders);
+        // 第15周 分片列user_id不能被更新
+        orders.setUserId(null);
+        ordersMapper.updateByPrimaryKeySelective(orders);
 
         // 3. 保存商品状态表
         OrderStatus waitPayOrderStatus = new OrderStatus();
