@@ -91,6 +91,13 @@ public class Utils {
     // all un-clearly-recognized letters are skiped.
     static String defaultRange = "0123456789ABCDFGHKMNPRSTWXYZ";
 
+    /**
+     * 如果id长度小于size, 则在左侧补0，知道id长度等于size
+     * @param str
+     * @param size
+     * @param padChar
+     * @return
+     */
     public static String padLeft(String str, int size, char padChar) {
         if (str.length() >= size) return str;
 

@@ -15,6 +15,8 @@ import common.imooc.utils.RedisOperator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,10 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Api(value = "订单相关", tags = {"订单相关的api接口"})
 @RestController
@@ -43,11 +48,49 @@ public class OrdersController extends BaseController{
     @Autowired
     private RedisOperator redisOperator;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
+    @ApiOperation(value = "获取订单token", notes = "获取订单token")
+    @PostMapping("/getOrderToken")
+    public IMOOCJSONResult getOrderToken(HttpSession session){
+        String token = UUID.randomUUID().toString();
+        redisOperator.set("ORDER_TOKEN_" + session.getId(), token, 600);
+        return IMOOCJSONResult.ok(token);
+    }
+
     @ApiOperation(value = "用户下单", notes = "用户下单")
     @PostMapping("/create")
     public IMOOCJSONResult create(@RequestBody SubmitOrderBO submitOrderBO,
                                   HttpServletRequest request,
                                   HttpServletResponse response){
+
+        //第17周 接口幂等性、防止重复下单
+        String orderTokenKey = "ORDER_TOKEN_" + redisOperator.get(request.getSession().getId());
+        //加锁操作，防止并发
+        String lockKey = "LOCK_KEY_" + request.getSession().getId();
+        RLock lock = redissonClient.getLock(lockKey);
+        lock.lock(5, TimeUnit.SECONDS);
+        try {
+            String orderToken = redisOperator.get(orderTokenKey);
+            if (StringUtils.isBlank(orderToken)){
+                throw new RuntimeException("orderToken不存在");
+            }
+            boolean correctToken = orderToken.equals(submitOrderBO.getToken());
+            if (!correctToken){
+                throw new RuntimeException("orderToken不正确");
+            }
+            //防止重复消费
+            redisOperator.del(orderTokenKey);
+
+        }finally {
+            try {
+                //释放锁
+                lock.unlock();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         if (submitOrderBO.getPayMethod() != PayMethod.WEIXIN.type
                 && submitOrderBO.getPayMethod() != PayMethod.ALIPAY.type){
